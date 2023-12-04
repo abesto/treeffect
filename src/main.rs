@@ -1,11 +1,18 @@
 use bevy::prelude::*;
 use bevy_ascii_terminal::{prelude::*, TiledCamera, ToWorld};
+use map::MapPlugin;
+use render::RenderPlugin;
+
+mod map;
+mod render;
+
+const MAP_SIZE: IVec2 = IVec2::new(80, 50);
 
 struct SetupPlugin;
 
 impl SetupPlugin {
     fn setup_terminal(mut commands: Commands) {
-        let mut terminal = Terminal::new([80, 50]);
+        let mut terminal = Terminal::new(MAP_SIZE);
         terminal.put_string([1, 1], "Hello world!".fg(Color::BLUE));
         commands.spawn((
             TerminalBundle::from(terminal),
@@ -34,5 +41,7 @@ impl Plugin for SetupPlugin {
 }
 
 fn main() {
-    App::new().add_plugins(SetupPlugin).run();
+    App::new()
+        .add_plugins((SetupPlugin, MapPlugin { size: MAP_SIZE }, RenderPlugin))
+        .run();
 }
