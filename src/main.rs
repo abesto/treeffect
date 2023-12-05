@@ -1,12 +1,15 @@
 use bevy::prelude::*;
 use bevy_ascii_terminal::{prelude::*, TiledCamera, ToWorld};
+use bevy_prng::WyRand;
+use bevy_rand::prelude::*;
+use consts::MAP_SIZE;
 use map::MapPlugin;
 use render::RenderPlugin;
 
+mod consts;
 mod map;
 mod render;
-
-const MAP_SIZE: IVec2 = IVec2::new(80, 50);
+mod util;
 
 struct SetupPlugin;
 
@@ -33,10 +36,14 @@ impl SetupPlugin {
 
 impl Plugin for SetupPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((DefaultPlugins, TerminalPlugin))
-            .add_systems(Startup, Self::setup_terminal)
-            // Running setup_resolution on each update is horrible, but 1. `AutoCamera` runs stuff in `First` which also runs on each update, and 2. I ran out of fucks
-            .add_systems(PreUpdate, Self::setup_resolution);
+        app.add_plugins((
+            DefaultPlugins,
+            TerminalPlugin,
+            EntropyPlugin::<WyRand>::default(),
+        ))
+        .add_systems(Startup, Self::setup_terminal)
+        // Running setup_resolution on each update is horrible, but 1. `AutoCamera` runs stuff in `First` which also runs on each update, and 2. I ran out of fucks
+        .add_systems(PreUpdate, Self::setup_resolution);
     }
 }
 
