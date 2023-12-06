@@ -63,6 +63,10 @@ impl Map {
     pub fn rect(&self) -> URect {
         URect::from_corners(UVec2::ZERO, self.size - UVec2::ONE)
     }
+
+    pub fn is_walkable(&self, position: &UVec2) -> bool {
+        self.get(position) == Some(TileType::Floor)
+    }
 }
 
 impl std::ops::Index<(u32, u32)> for Map {

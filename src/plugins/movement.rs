@@ -10,7 +10,10 @@ fn movement(
     map: Res<Map>,
 ) {
     for (entity, mut position, MovementIntent(direction)) in query.iter_mut() {
-        position.xy = map.iclamp(&(position.xy.as_ivec2() + *direction));
+        let new_position = map.iclamp(&(position.xy.as_ivec2() + *direction));
+        if map.is_walkable(&new_position) {
+            position.xy = new_position;
+        }
         commands.entity(entity).remove::<MovementIntent>();
     }
 }
