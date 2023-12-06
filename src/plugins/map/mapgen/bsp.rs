@@ -1,4 +1,4 @@
-use bevy::ecs::system::Commands;
+use bevy::ecs::event::EventWriter;
 use bevy::math::{URect, UVec2};
 use petgraph::Graph;
 use rand::prelude::SliceRandom;
@@ -7,6 +7,7 @@ use std::cmp::{max, min};
 use std::collections::VecDeque;
 
 use crate::plugins::map::resources::{Map, TileType};
+use crate::plugins::spawner::events::{Spawn, SpawnType};
 use crate::util::{urect_with_size, URectExt};
 
 use super::{common::*, MapBuilder, SnapshotManager};
@@ -234,7 +235,11 @@ where
         self.map[&last_room.center()] = TileType::DownStairs;
     }
 
-    fn spawn_entities(&self, commands: &mut Commands, rng: &mut RNG) {
+    fn spawn_entities(&self, mut ev_spawn: EventWriter<Spawn>, rng: &mut RNG) {
+        ev_spawn.send(Spawn {
+            xy: self.rooms[1].center(),
+            kind: SpawnType::Dog,
+        });
         for room in self.rooms.iter().skip(1) {
             // TODO spawn stuff!
             //super::spawner::spawn_room(rng, room, self.map.depth, commands);

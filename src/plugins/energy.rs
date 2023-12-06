@@ -20,6 +20,10 @@ fn add_energy(mut query: Query<(Entity, &mut Energy)>) {
         return;
     };
 
+    if max_energy >= ACTION_COST {
+        return;
+    }
+
     let energy_charged = ACTION_COST - max_energy;
     for (_, mut energy) in items {
         energy.amount += energy_charged;
@@ -33,6 +37,7 @@ fn pick_next_actor(
 ) {
     let candidates = query
         .iter()
+        .map(|(entity, energy)| dbg!((entity, energy)))
         .filter(|(_, energy)| energy.amount >= ACTION_COST);
     let Some((next_actor, _)) = candidates.choose(&mut *rng) else {
         return;

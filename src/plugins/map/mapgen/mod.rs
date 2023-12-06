@@ -7,7 +7,7 @@ use bsp::{BspConfig, BspMapBuilder};
 //use crate::mapgen::drunkards_walk::DrunkardsWalkMapBuilder;
 //use crate::mapgen::maze::MazeMapBuilder;
 //use crate::mapgen::simple::SimpleMapBuilder;
-use crate::plugins::map::resources::Map;
+use crate::plugins::{map::resources::Map, spawner::events::Spawn};
 
 mod bsp;
 //mod cellular_automata;
@@ -42,7 +42,7 @@ impl SnapshotManager {
 
 pub trait MapBuilder<RNG: Rng> {
     fn build_map(&mut self, rng: &mut RNG);
-    fn spawn_entities(&self, commands: &mut Commands, rng: &mut RNG);
+    fn spawn_entities(&self, ev_spawn: EventWriter<Spawn>, rng: &mut RNG);
     fn get_starting_position(&self) -> UVec2;
     fn get_snapshots(&self) -> VecDeque<Map>;
     fn get_map(&self) -> Map;

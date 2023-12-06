@@ -4,10 +4,11 @@ use bevy_prng::WyRand;
 use bevy_rand::prelude::*;
 use consts::MAP_SIZE;
 use events::EventsPlugin;
+use plugins::actions::ActionsPlugin;
+use plugins::ai::AiPlugin;
 use plugins::energy::EnergyPlugin;
 use plugins::input::InputPlugin;
 use plugins::map::MapPlugin;
-use plugins::movement::MovementPlugin;
 use plugins::render::RenderPlugin;
 use plugins::spawner::SpawnerPlugin;
 
@@ -61,8 +62,9 @@ fn main() {
             MapPlugin { size: MAP_SIZE },
             SpawnerPlugin,
             InputPlugin,
+            AiPlugin,
             EnergyPlugin,
-            MovementPlugin,
+            ActionsPlugin,
             RenderPlugin,
         ))
         .run();

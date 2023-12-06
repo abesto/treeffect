@@ -1,12 +1,20 @@
 use bevy::prelude::*;
 
-use super::events::SpawnPlayer;
+use super::{
+    bundles::DogBundle,
+    events::SpawnPlayer,
+    systems::{
+        generic::{spawn, Spawn},
+        player::spawn_player,
+    },
+};
 
 pub struct SpawnerPlugin;
 
 impl Plugin for SpawnerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, super::systems::player::spawn_player)
-            .add_event::<SpawnPlayer>();
+        app.add_systems(Update, (spawn, spawn_player))
+            .add_event::<SpawnPlayer>()
+            .add_event::<Spawn>();
     }
 }

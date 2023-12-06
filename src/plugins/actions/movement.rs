@@ -3,9 +3,8 @@ use bevy::prelude::*;
 use crate::{
     components::{energy::Active, intents::movement::MovementIntent, position::Position},
     events::took_turn::TookTurn,
+    plugins::map::resources::Map,
 };
-
-use super::map::resources::Map;
 
 fn movement(
     mut commands: Commands,

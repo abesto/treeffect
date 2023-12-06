@@ -2,8 +2,9 @@ use bevy::{
     ecs::system::Resource,
     math::{IVec2, URect, UVec2},
 };
+use bracket_pathfinding::prelude::SmallVec;
 
-use crate::util::UVec2Ext;
+use crate::util::{ivec2_ext::*, UVec2Ext};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum TileType {
@@ -96,5 +97,35 @@ impl std::ops::IndexMut<&UVec2> for Map {
     fn index_mut(&mut self, index: &UVec2) -> &mut Self::Output {
         let idx = self.xy_idx(index);
         &mut self.tiles[idx]
+    }
+}
+
+impl bracket_pathfinding::prelude::BaseMap for Map {
+    fn is_opaque(&self, idx: usize) -> bool {
+        idx < self.tiles.len() && self.tiles[idx as usize] == TileType::Wall
+    }
+
+    fn get_available_exits(&self, idx: usize) -> SmallVec<[(usize, f32); 10]> {
+        let position = self.idx_pos(idx).as_ivec2();
+
+        [
+            NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST,
+        ]
+        .iter()
+        .map(|vector| position + *vector)
+        .filter(|candidate| self.is_walkable(&candidate.as_uvec2()))
+        .map(|exit| {
+            (
+                self.xy_idx(&exit.as_uvec2()),
+                (position.distance_squared(exit) as f32).sqrt(),
+            )
+        })
+        .collect()
+    }
+
+    fn get_pathing_distance(&self, idx1: usize, idx2: usize) -> f32 {
+        let p1 = self.idx_pos(idx1).as_ivec2();
+        let p2 = self.idx_pos(idx2).as_ivec2();
+        (p1.distance_squared(p2) as f32).sqrt()
     }
 }
