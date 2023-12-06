@@ -21,7 +21,7 @@ impl Default for DogBundle {
         DogBundle {
             renderable: Renderable::new('d'.fg(Color::WHITE), RenderLayer::Monsters),
             position: Position::default(),
-            energy: Energy::new(0),
+            energy: Energy::new(1),
             ai: Ai::Dog,
         }
     }

@@ -36,7 +36,7 @@ fn dog(
 
         let from = position.xy.as_ivec2();
         let to = map.idx_pos(*step).as_ivec2();
-        let direction = if dbg!(player_pos.xy.as_ivec2().distance_squared(from)) > 1 {
+        let direction = if player_pos.xy.as_ivec2().distance_squared(from) > 4 {
             to - from
         } else {
             from - to
