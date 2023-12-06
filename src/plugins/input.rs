@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use crate::components::{intents::movement::MovementIntent, player::Player};
 
-const KEY_REPEAT: f64 = 0.250;
+const KEY_REPEAT: f64 = 0.050;
 const KEY_REPEAT_DELAY: f64 = 0.400;
 
 #[derive(Resource)]
@@ -27,7 +27,7 @@ impl KeyRepeatManager {
         if held_duration < KEY_REPEAT_DELAY {
             return first_press;
         }
-        held_duration % KEY_REPEAT > (held_duration - dt) % KEY_REPEAT
+        (held_duration / KEY_REPEAT).round() > ((held_duration - dt) / KEY_REPEAT).round()
     }
 
     fn released(&mut self, key: &KeyCode) {
