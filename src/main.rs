@@ -5,8 +5,11 @@ use bevy_rand::prelude::*;
 use consts::MAP_SIZE;
 use plugins::map::MapPlugin;
 use plugins::render::RenderPlugin;
+use plugins::spawner::SpawnerPlugin;
 
+mod components;
 mod consts;
+mod events;
 mod plugins;
 mod util;
 
@@ -48,6 +51,11 @@ impl Plugin for SetupPlugin {
 
 fn main() {
     App::new()
-        .add_plugins((SetupPlugin, MapPlugin { size: MAP_SIZE }, RenderPlugin))
+        .add_plugins((
+            SetupPlugin,
+            MapPlugin { size: MAP_SIZE },
+            SpawnerPlugin,
+            RenderPlugin,
+        ))
         .run();
 }
