@@ -3,6 +3,8 @@ use bevy_ascii_terminal::{prelude::*, TiledCamera, ToWorld};
 use bevy_prng::WyRand;
 use bevy_rand::prelude::*;
 use consts::MAP_SIZE;
+use events::EventsPlugin;
+use plugins::energy::EnergyPlugin;
 use plugins::input::InputPlugin;
 use plugins::map::MapPlugin;
 use plugins::movement::MovementPlugin;
@@ -54,10 +56,12 @@ impl Plugin for SetupPlugin {
 fn main() {
     App::new()
         .add_plugins((
+            EventsPlugin,
             SetupPlugin,
             MapPlugin { size: MAP_SIZE },
             SpawnerPlugin,
             InputPlugin,
+            EnergyPlugin,
             MovementPlugin,
             RenderPlugin,
         ))
