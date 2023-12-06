@@ -10,7 +10,8 @@ use itertools::Itertools;
 use std::collections::VecDeque;
 
 use crate::plugins::map::resources::{Map, TileType};
-use crate::util::{Heading, URectExt, UVec2Ext};
+use crate::util::ivec2_ext::*;
+use crate::util::{URectExt, UVec2Ext};
 
 pub fn apply_room_to_map(room: &URect, map: &mut Map) {
     fill(room, TileType::Floor, map);
@@ -65,8 +66,7 @@ fn position_if_in_map(position: IVec2, map: &Map) -> Option<IVec2> {
     }
 }
 
-pub fn walk(from: UVec2, direction: Heading, map: &Map) -> impl Iterator<Item = UVec2> + '_ {
-    let step = IVec2::from(direction);
+pub fn walk(from: UVec2, step: IVec2, map: &Map) -> impl Iterator<Item = UVec2> + '_ {
     itertools::unfold(from.as_ivec2(), move |pos| {
         *pos += step;
         position_if_in_map(*pos, map)
@@ -76,43 +76,44 @@ pub fn walk(from: UVec2, direction: Heading, map: &Map) -> impl Iterator<Item = 
 
 /// Cast a ray `from` a position in a `direction`, returning the position of the first `look_for`
 /// tile that is found, if any
-pub fn raycast(from: UVec2, direction: Heading, look_for: TileType, map: &Map) -> Option<UVec2> {
-    walk(from, direction, map).find(|pos| map[pos] == look_for)
+pub fn raycast(from: UVec2, step: IVec2, look_for: TileType, map: &Map) -> Option<UVec2> {
+    walk(from, step, map).find(|pos| map[pos] == look_for)
 }
 
 /// Cast `n` rays in `ray_direction`, starting at `from`, walking in `walk_direction`,
 /// returning all positions where a `look_for` tile was found.
 pub fn raycast_walk(
     from: UVec2,
-    ray_direction: Heading,
-    walk_direction: Heading,
+    ray_step: IVec2,
+    walk_step: IVec2,
     n: usize,
     look_for: TileType,
     map: &Map,
 ) -> Vec<UVec2> {
-    walk(from, walk_direction, map)
+    walk(from, walk_step, map)
         .take(n)
-        .flat_map(|ray_from| raycast(ray_from, ray_direction, look_for, map))
+        .flat_map(|ray_from| raycast(ray_from, ray_step, look_for, map))
         .collect()
 }
 
 /// Return a mapping from "which side is this" to "positions along the hull"
-pub fn raycast_hull(bbox: URect, look_for: TileType, map: &Map) -> HashMap<Heading, Vec<UVec2>> {
+pub fn raycast_hull(bbox: URect, look_for: TileType, map: &Map) -> HashMap<IVec2, Vec<UVec2>> {
     let mut retval = HashMap::new();
 
-    let n = |walk_direction: Heading| match walk_direction {
-        Heading::North | Heading::South => bbox.tile_height() as usize,
-        Heading::East | Heading::West => bbox.tile_width() as usize,
+    let n = |step: IVec2| match step {
+        NORTH | SOUTH => bbox.tile_height() as usize,
+        EAST | WEST => bbox.tile_width() as usize,
+        _ => unimplemented!(),
     };
 
-    let mut record_raycast_walk = |from: UVec2, walk_direction: Heading| {
+    let mut record_raycast_walk = |from: UVec2, walk_step: IVec2| {
         retval.insert(
-            walk_direction.rotate_ccw(),
+            walk_step.perp(),
             raycast_walk(
                 from,
-                walk_direction.rotate_cw(),
-                walk_direction,
-                n(walk_direction),
+                walk_step.perp_cw(),
+                walk_step,
+                n(walk_step),
                 look_for,
                 map,
             ),
@@ -120,10 +121,10 @@ pub fn raycast_hull(bbox: URect, look_for: TileType, map: &Map) -> HashMap<Headi
     };
 
     // Raycast inward, walking along each edge of `bbox`
-    record_raycast_walk(bbox.top_left(), Heading::East);
-    record_raycast_walk(bbox.top_right(), Heading::South);
-    record_raycast_walk(bbox.bottom_right(), Heading::West);
-    record_raycast_walk(bbox.bottom_left(), Heading::North);
+    record_raycast_walk(bbox.north_west(), EAST);
+    record_raycast_walk(bbox.north_east(), SOUTH);
+    record_raycast_walk(bbox.south_east(), WEST);
+    record_raycast_walk(bbox.south_west(), NORTH);
 
     // Restrict matches to bbox
     for values in retval.values_mut() {
@@ -147,25 +148,19 @@ pub fn connect_regions<RNG: Rng>(a: URect, b: URect, map: &mut Map, rng: &mut RN
         } else {
             (&b_hull, &a_hull)
         };
-        let north_x = north_hull[&Heading::South]
+        let north_x = north_hull[&SOUTH]
             .iter()
             .map(|p| p.x)
             .collect::<HashSet<_>>();
-        let south_x = south_hull[&Heading::North]
+        let south_x = south_hull[&NORTH]
             .iter()
             .map(|p| p.x)
             .collect::<HashSet<_>>();
         let facing_x = north_x.intersection(&south_x).collect_vec();
         if !facing_x.is_empty() {
             let &&x = facing_x.choose(rng).unwrap();
-            let north_position = north_hull[&Heading::South]
-                .iter()
-                .find(|p| p.x == x)
-                .unwrap();
-            let south_position = south_hull[&Heading::North]
-                .iter()
-                .find(|p| p.x == x)
-                .unwrap();
+            let north_position = north_hull[&SOUTH].iter().find(|p| p.x == x).unwrap();
+            let south_position = south_hull[&NORTH].iter().find(|p| p.x == x).unwrap();
             connect_positions(north_position, south_position, map, rng);
             return;
         }
@@ -178,19 +173,13 @@ pub fn connect_regions<RNG: Rng>(a: URect, b: URect, map: &mut Map, rng: &mut RN
         } else {
             (&b_hull, &a_hull)
         };
-        let west_y = west_hull[&Heading::East]
-            .iter()
-            .map(|p| p.y)
-            .collect::<HashSet<_>>();
-        let east_y = east_hull[&Heading::West]
-            .iter()
-            .map(|p| p.y)
-            .collect::<HashSet<_>>();
+        let west_y = west_hull[&EAST].iter().map(|p| p.y).collect::<HashSet<_>>();
+        let east_y = east_hull[&WEST].iter().map(|p| p.y).collect::<HashSet<_>>();
         let facing_y = west_y.intersection(&east_y).collect_vec();
         if !facing_y.is_empty() {
             let &&y = facing_y.choose(rng).unwrap();
-            let west_position = west_hull[&Heading::East].iter().find(|p| p.y == y).unwrap();
-            let east_position = east_hull[&Heading::West].iter().find(|p| p.y == y).unwrap();
+            let west_position = west_hull[&EAST].iter().find(|p| p.y == y).unwrap();
+            let east_position = east_hull[&WEST].iter().find(|p| p.y == y).unwrap();
             connect_positions(west_position, east_position, map, rng);
             return;
         }
@@ -203,18 +192,18 @@ pub fn connect_regions<RNG: Rng>(a: URect, b: URect, map: &mut Map, rng: &mut RN
 
         // Figure out valid candidates for which sides we'll connect
         if a.max.x <= b.min.x {
-            a_faces.push(Heading::East);
-            b_faces.push(Heading::West);
+            a_faces.push(EAST);
+            b_faces.push(WEST);
         } else {
-            a_faces.push(Heading::West);
-            b_faces.push(Heading::East);
+            a_faces.push(WEST);
+            b_faces.push(EAST);
         }
         if a.max.y <= b.min.y {
-            a_faces.push(Heading::South);
-            b_faces.push(Heading::North);
+            a_faces.push(SOUTH);
+            b_faces.push(NORTH);
         } else {
-            a_faces.push(Heading::North);
-            b_faces.push(Heading::South);
+            a_faces.push(NORTH);
+            b_faces.push(SOUTH);
         }
 
         // Randomly determine which way the corner goes
@@ -383,15 +372,15 @@ mod tests {
     fn test_raycast() {
         let map = make_map();
         assert_eq!(
-            raycast(UVec2::new(6, 0), Heading::North, TileType::Floor, &map),
+            raycast(UVec2::new(6, 0), NORTH, TileType::Floor, &map),
             Some(UVec2::new(6, 5))
         );
         assert_eq!(
-            raycast(UVec2::new(19, 7), Heading::West, TileType::Floor, &map),
+            raycast(UVec2::new(19, 7), WEST, TileType::Floor, &map),
             Some(UVec2::new(18, 7))
         );
         assert_eq!(
-            raycast(UVec2::new(0, 0), Heading::North, TileType::Floor, &map),
+            raycast(UVec2::new(0, 0), NORTH, TileType::Floor, &map),
             None
         );
     }
@@ -402,7 +391,7 @@ mod tests {
         let hull = raycast_hull(URect::new(0, 0, 19, 12), TileType::Floor, &map);
 
         assert_eq!(
-            hull[&Heading::North],
+            hull[&NORTH],
             vec!(
                 // Room 1
                 UVec2::new(5, 11),
@@ -424,7 +413,7 @@ mod tests {
             )
         );
         assert_eq!(
-            hull[&Heading::East],
+            hull[&EAST],
             vec!(
                 UVec2::new(18, 11),
                 UVec2::new(18, 10),
@@ -438,7 +427,7 @@ mod tests {
             )
         );
         assert_eq!(
-            hull[&Heading::South],
+            hull[&SOUTH],
             vec!(
                 // Room 1
                 UVec2::new(18, 3),
@@ -460,7 +449,7 @@ mod tests {
             )
         );
         assert_eq!(
-            hull[&Heading::West],
+            hull[&WEST],
             vec!(
                 UVec2::new(15, 3),
                 UVec2::new(15, 4),
@@ -486,7 +475,7 @@ mod tests {
         );
 
         let new_hull = raycast_hull(urect_with_size(0, 0, 20, 20), TileType::Floor, &map);
-        assert!(new_hull[&Heading::East]
+        assert!(new_hull[&EAST]
             .iter()
             .filter(|p| p.y >= 12 && p.y <= 16)
             .all(|p| p.x >= 5 && p.x <= 18));

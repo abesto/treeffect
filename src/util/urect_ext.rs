@@ -3,10 +3,10 @@ use bevy::prelude::*;
 pub trait URectExt {
     fn point_set(&self) -> Vec<UVec2>;
 
-    fn top_left(&self) -> UVec2;
-    fn top_right(&self) -> UVec2;
-    fn bottom_left(&self) -> UVec2;
-    fn bottom_right(&self) -> UVec2;
+    fn north_west(&self) -> UVec2;
+    fn north_east(&self) -> UVec2;
+    fn south_west(&self) -> UVec2;
+    fn south_east(&self) -> UVec2;
 
     fn tile_width(&self) -> u32;
     fn tile_height(&self) -> u32;
@@ -23,19 +23,19 @@ impl URectExt for URect {
         points
     }
 
-    fn top_left(&self) -> UVec2 {
+    fn north_west(&self) -> UVec2 {
         UVec2::new(self.min.x, self.max.y)
     }
 
-    fn top_right(&self) -> UVec2 {
+    fn north_east(&self) -> UVec2 {
         UVec2::new(self.max.x, self.max.y)
     }
 
-    fn bottom_left(&self) -> UVec2 {
+    fn south_west(&self) -> UVec2 {
         UVec2::new(self.min.x, self.min.y)
     }
 
-    fn bottom_right(&self) -> UVec2 {
+    fn south_east(&self) -> UVec2 {
         UVec2::new(self.max.x, self.min.y)
     }
 

@@ -3,7 +3,9 @@ use bevy_ascii_terminal::{prelude::*, TiledCamera, ToWorld};
 use bevy_prng::WyRand;
 use bevy_rand::prelude::*;
 use consts::MAP_SIZE;
+use plugins::input::InputPlugin;
 use plugins::map::MapPlugin;
+use plugins::movement::MovementPlugin;
 use plugins::render::RenderPlugin;
 use plugins::spawner::SpawnerPlugin;
 
@@ -55,6 +57,8 @@ fn main() {
             SetupPlugin,
             MapPlugin { size: MAP_SIZE },
             SpawnerPlugin,
+            InputPlugin,
+            MovementPlugin,
             RenderPlugin,
         ))
         .run();

@@ -1,6 +1,6 @@
 use bevy::{
     ecs::system::Resource,
-    math::{URect, UVec2},
+    math::{IVec2, URect, UVec2},
 };
 
 use crate::util::UVec2Ext;
@@ -47,6 +47,13 @@ impl Map {
 
     pub fn clamp(&self, xy: &UVec2) -> UVec2 {
         xy.min(self.size - UVec2::ONE)
+    }
+
+    pub fn iclamp(&self, xy: &IVec2) -> UVec2 {
+        if xy.x < 0 || xy.y < 0 {
+            return UVec2::ZERO;
+        }
+        self.clamp(&xy.as_uvec2())
     }
 
     pub fn get(&self, position: &UVec2) -> Option<TileType> {
