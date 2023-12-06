@@ -9,7 +9,7 @@ use std::collections::{HashMap, HashSet};
 use itertools::Itertools;
 use std::collections::VecDeque;
 
-use crate::map::{Map, TileType};
+use crate::plugins::map::resources::{Map, TileType};
 use crate::util::{Heading, URectExt, UVec2Ext};
 
 pub fn apply_room_to_map(room: &URect, map: &mut Map) {

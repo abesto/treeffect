@@ -4,8 +4,6 @@ use bevy_rand::resource::GlobalEntropy;
 
 use crate::consts::MAP_SIZE;
 
-use super::map::{Map, TileType};
-
 pub struct MapPlugin {
     pub size: UVec2,
 }

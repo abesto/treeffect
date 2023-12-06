@@ -3,12 +3,11 @@ use bevy_ascii_terminal::{prelude::*, TiledCamera, ToWorld};
 use bevy_prng::WyRand;
 use bevy_rand::prelude::*;
 use consts::MAP_SIZE;
-use map::MapPlugin;
-use render::RenderPlugin;
+use plugins::map::MapPlugin;
+use plugins::render::RenderPlugin;
 
 mod consts;
-mod map;
-mod render;
+mod plugins;
 mod util;
 
 struct SetupPlugin;

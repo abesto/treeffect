@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_ascii_terminal::Terminal;
 
-use crate::map::{Map, TileType};
+use crate::plugins::map::resources::{Map, TileType};
 
 fn clear(mut q_terminal: Query<&mut Terminal>) {
     let mut terminal = q_terminal.single_mut();

@@ -3,10 +3,10 @@ use bevy::math::{URect, UVec2};
 use petgraph::Graph;
 use rand::prelude::SliceRandom;
 use rand::Rng;
-use std::cmp::{max, min, Ordering};
+use std::cmp::{max, min};
 use std::collections::VecDeque;
 
-use crate::map::{Map, TileType};
+use crate::plugins::map::resources::{Map, TileType};
 use crate::util::{urect_with_size, URectExt};
 
 use super::{common::*, MapBuilder, SnapshotManager};

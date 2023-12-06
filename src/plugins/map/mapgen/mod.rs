@@ -7,7 +7,7 @@ use bsp::{BspConfig, BspMapBuilder};
 //use crate::mapgen::drunkards_walk::DrunkardsWalkMapBuilder;
 //use crate::mapgen::maze::MazeMapBuilder;
 //use crate::mapgen::simple::SimpleMapBuilder;
-use crate::map::Map;
+use crate::plugins::map::resources::Map;
 
 mod bsp;
 //mod cellular_automata;
