@@ -1,15 +1,11 @@
 use std::collections::HashMap;
 
 use bevy::prelude::*;
-use bevy_prng::WyRand;
-use bevy_rand::resource::GlobalEntropy;
-use itertools::Itertools;
-use rand::seq::IteratorRandom;
 
 use crate::{
     components::{
-        energy::{self, Active, Energy},
-        player::{self, Player},
+        energy::{Active, Energy},
+        player::Player,
     },
     consts::ACTION_COST,
     events::took_turn::TookTurn,
