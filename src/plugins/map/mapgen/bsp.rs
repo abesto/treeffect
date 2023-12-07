@@ -235,12 +235,12 @@ where
         self.map[&last_room.center()] = TileType::DownStairs;
     }
 
-    fn spawn_entities(&self, mut ev_spawn: EventWriter<Spawn>, rng: &mut RNG) {
+    fn spawn_entities(&self, mut ev_spawn: EventWriter<Spawn>, _rng: &mut RNG) {
         ev_spawn.send(Spawn {
             xy: self.rooms[1].center(),
             kind: SpawnType::Dog,
         });
-        for room in self.rooms.iter().skip(1) {
+        for _room in self.rooms.iter().skip(1) {
             // TODO spawn stuff!
             //super::spawner::spawn_room(rng, room, self.map.depth, commands);
         }
@@ -261,7 +261,7 @@ where
 
 impl BspMapBuilder {
     #[must_use]
-    pub fn new(width: u32, height: u32, depth: u32, config: BspConfig) -> Self {
+    pub fn new(width: u32, height: u32, _depth: u32, config: BspConfig) -> Self {
         BspMapBuilder {
             rooms: vec![],
             map: Map::new([width, height]),

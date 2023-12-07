@@ -31,15 +31,19 @@ impl Map {
         xy.as_index(self.size.x)
     }
 
-    pub fn idx_pos(&self, idx: usize) -> UVec2 {
+    /*
+    pub fn idx_xy(&self, idx: usize) -> UVec2 {
         let idx_u32: u32 = idx.try_into().unwrap();
         let y = idx_u32 / self.size.x;
         [idx_u32 - y * self.size.x, y].into()
     }
+    */
 
+    /*
     pub fn tile_count(&self) -> usize {
         self.tiles.len()
     }
+    */
 
     pub fn contains(&self, xy: &UVec2) -> bool {
         xy.x < self.size.x && xy.y < self.size.y
@@ -64,7 +68,6 @@ impl Map {
         URect::from_corners(UVec2::ZERO, self.size - UVec2::ONE)
     }
 
-    // TODO dedup this and is_opaque
     pub fn is_walkable(&self, position: &UVec2) -> bool {
         self.get(position) == Some(TileType::Floor)
     }

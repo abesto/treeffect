@@ -1,9 +1,7 @@
 use bevy::prelude::*;
-use bevy_prng::WyRand;
-use bevy_rand::prelude::*;
 use rand::seq::SliceRandom;
-use rand::{Rng, RngCore};
-use std::cmp::{max, min, Ordering};
+use rand::Rng;
+use std::cmp::{max, min};
 use std::collections::{HashMap, HashSet};
 
 use itertools::Itertools;
@@ -51,9 +49,11 @@ pub fn connect_positions<RNG: Rng>(a: &UVec2, b: &UVec2, map: &mut Map, rng: &mu
     }
 }
 
+/*
 pub fn connect_rooms<RNG: Rng>(a: &URect, b: &URect, map: &mut Map, rng: &mut RNG) {
     connect_positions(&a.center(), &b.center(), map, rng);
 }
+*/
 
 fn position_if_in_map(position: IVec2, map: &Map) -> Option<IVec2> {
     if position.x < 0 || position.y < 0 {
@@ -235,6 +235,7 @@ pub fn walls_around(rect: &URect, map: &mut Map) {
     }
 }
 
+#[allow(dead_code)]
 pub fn connected_region(seed: &UVec2, map: &Map) -> HashSet<UVec2> {
     let target = map[seed];
     let mut retval = HashSet::new();
@@ -262,6 +263,7 @@ pub fn connected_region(seed: &UVec2, map: &Map) -> HashSet<UVec2> {
     retval
 }
 
+/*
 pub fn random_position_with_tile<RNG: Rng>(target: TileType, map: &Map, rng: &mut RNG) -> UVec2 {
     loop {
         let p = (rng.gen_range(0..map.size.x), rng.gen_range(0..map.size.y));
@@ -270,7 +272,9 @@ pub fn random_position_with_tile<RNG: Rng>(target: TileType, map: &Map, rng: &mu
         }
     }
 }
+*/
 
+/*
 pub fn remove_unreachable_areas(start: &UVec2, map: &mut Map) -> HashSet<UVec2> {
     let connected_region = connected_region(start, map);
     for position in map.rect().point_set() {
@@ -280,7 +284,9 @@ pub fn remove_unreachable_areas(start: &UVec2, map: &mut Map) -> HashSet<UVec2> 
     }
     connected_region
 }
+*/
 
+/*
 pub fn generate_voronoi_spawn_regions(
     map: &Map,
     rng: &mut EntropyComponent<WyRand>,
@@ -306,6 +312,7 @@ pub fn generate_voronoi_spawn_regions(
 
     areas
 }
+*/
 
 /*
 pub fn find_furthest_reachable_tiles(
