@@ -2,7 +2,12 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-use crate::components::{intents::movement::MovementIntent, player::Player};
+use crate::components::{
+    ai::Ai,
+    intents::{attack::AttackIntent, movement::MovementIntent},
+    player::Player,
+    position::Position,
+};
 
 use super::ai::ai_inactive;
 
@@ -39,36 +44,51 @@ impl KeyRepeatManager {
 
 fn handle_input(
     mut commands: Commands,
-    q_player: Query<Entity, With<Player>>,
+    q_player: Query<(Entity, &Position), With<Player>>,
+    q_monsters: Query<&Position, With<Ai>>, // TODO replace with collision system caching positions
     keys: Res<Input<KeyCode>>,
     time: Res<Time>,
     mut key_repeat_manager: ResMut<KeyRepeatManager>,
 ) {
-    let Ok(player) = q_player.get_single() else {
+    let Ok((player, player_position)) = q_player.get_single() else {
         return;
     };
     keys.get_just_released()
         .for_each(|key| key_repeat_manager.released(key));
 
-    let dt = time.delta_seconds_f64();
-    let intent = keys
-        .get_pressed()
-        .filter(|key| key_repeat_manager.pressed(key, dt))
-        .find_map(|k| match k {
-            KeyCode::Up | KeyCode::K => Some(MovementIntent(IVec2::Y)),
-            KeyCode::Down | KeyCode::J => Some(MovementIntent(IVec2::NEG_Y)),
-            KeyCode::Left | KeyCode::H => Some(MovementIntent(IVec2::NEG_X)),
-            KeyCode::Right | KeyCode::L => Some(MovementIntent(IVec2::X)),
-            KeyCode::Y => Some(MovementIntent(IVec2::new(-1, 1))),
-            KeyCode::U => Some(MovementIntent(IVec2::new(1, 1))),
-            KeyCode::B => Some(MovementIntent(IVec2::new(-1, -1))),
-            KeyCode::N => Some(MovementIntent(IVec2::new(1, -1))),
-            _ => None,
-        });
-
-    if let Some(intent) = intent {
-        commands.entity(player).insert(intent);
+    macro_rules! record {
+        ($intent:expr) => {
+            commands.entity(player).insert($intent);
+        };
     }
+
+    let mut move_or_attack = |direction: IVec2| {
+        let new_position = (player_position.xy.as_ivec2() + direction).as_uvec2();
+        if q_monsters
+            .iter()
+            .any(|position| position.xy == new_position)
+        {
+            record!(AttackIntent(direction));
+        } else {
+            record!(MovementIntent(direction));
+        }
+        true
+    };
+
+    let dt = time.delta_seconds_f64();
+    keys.get_pressed()
+        .filter(|key| key_repeat_manager.pressed(key, dt))
+        .find(|k| match k {
+            KeyCode::Up | KeyCode::K => move_or_attack(IVec2::Y),
+            KeyCode::Down | KeyCode::J => move_or_attack(IVec2::NEG_Y),
+            KeyCode::Left | KeyCode::H => move_or_attack(IVec2::NEG_X),
+            KeyCode::Right | KeyCode::L => move_or_attack(IVec2::X),
+            KeyCode::Y => move_or_attack(IVec2::new(-1, 1)),
+            KeyCode::U => move_or_attack(IVec2::new(1, 1)),
+            KeyCode::B => move_or_attack(IVec2::new(-1, -1)),
+            KeyCode::N => move_or_attack(IVec2::new(1, -1)),
+            _ => false,
+        });
 }
 
 pub struct InputPlugin;
