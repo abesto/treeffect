@@ -7,8 +7,8 @@ use std::cmp::{max, min};
 use std::collections::VecDeque;
 
 use crate::plugins::map::resources::{Map, TileType};
-use crate::plugins::spawner::events::{Spawn, SpawnType};
-use crate::util::{urect_with_size, URectExt};
+use crate::plugins::spawner::events::Spawn;
+use crate::util::urect_ext::{urect_with_size, URectExt};
 
 use super::{common::*, MapBuilder, SnapshotManager};
 
@@ -236,13 +236,12 @@ where
     }
 
     fn spawn_entities(&self, mut ev_spawn: EventWriter<Spawn>, _rng: &mut RNG) {
-        ev_spawn.send(Spawn {
-            xy: self.rooms[1].center(),
-            kind: SpawnType::Dog,
-        });
-        for _room in self.rooms.iter().skip(1) {
-            // TODO spawn stuff!
-            //super::spawner::spawn_room(rng, room, self.map.depth, commands);
+        ev_spawn.send(Spawn::Dog(self.rooms[1].center()));
+        for room in self.rooms.iter().skip(1) {
+            ev_spawn.send(Spawn::Area {
+                area: *room,
+                depth: 1, //self.map.depth,
+            });
         }
     }
 

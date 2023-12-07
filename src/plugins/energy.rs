@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use bevy::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::resource::GlobalEntropy;
@@ -5,46 +7,38 @@ use itertools::Itertools;
 use rand::seq::IteratorRandom;
 
 use crate::{
-    components::energy::{Active, Energy},
+    components::{
+        energy::{self, Active, Energy},
+        player::{self, Player},
+    },
     consts::ACTION_COST,
     events::took_turn::TookTurn,
 };
 
-fn add_energy(mut query: Query<(Entity, &mut Energy)>) {
-    let items = query.iter_mut().collect_vec();
-    let Some(max_energy) = items
-        .iter()
-        .max_by_key(|(_, energy)| energy.amount)
-        .map(|item| item.1.amount)
-    else {
+fn add_energy(
+    mut q_others: Query<&mut Energy, Without<Player>>,
+    mut q_player: Query<&mut Energy, With<Player>>,
+) {
+    let Some(mut player_energy) = q_player.iter_mut().next() else {
         return;
     };
-
-    if max_energy >= ACTION_COST {
+    if player_energy.amount >= ACTION_COST {
         return;
     }
+    let to_add = ACTION_COST - player_energy.amount;
 
-    let energy_charged = ACTION_COST - max_energy;
-    for (_, mut energy) in items {
-        energy.amount += energy_charged;
+    player_energy.amount += to_add;
+    for mut energy in q_others.iter_mut() {
+        energy.amount += to_add;
     }
 }
 
-fn pick_next_actor(
-    mut commands: Commands,
-    query: Query<(Entity, &Energy)>,
-    mut rng: ResMut<GlobalEntropy<WyRand>>,
-) {
-    let candidates = query
-        .iter()
-        .filter(|(_, energy)| energy.amount >= ACTION_COST);
-    let Some((next_actor, _)) = candidates.choose(&mut *rng) else {
-        return;
-    };
-
-    println!("Next actor: {:?}", next_actor);
-
-    commands.entity(next_actor).insert(Active);
+fn pick_next_actors(mut commands: Commands, query: Query<(Entity, &Energy)>) {
+    for (entity, energy) in query.iter() {
+        if energy.amount >= ACTION_COST {
+            commands.entity(entity).insert(Active);
+        }
+    }
 }
 
 fn no_active_actors(query: Query<&Active>) -> bool {
@@ -56,13 +50,13 @@ fn took_turn(
     mut query: Query<(Entity, &mut Energy), With<Active>>,
     mut ev_took_turn: EventReader<TookTurn>,
 ) {
-    for (entity, mut energy) in query.iter_mut() {
-        for event_entity in ev_took_turn.read() {
-            assert_eq!(event_entity.actor, entity);
+    let mut energy_by_entity: HashMap<_, _> = query.iter_mut().collect();
+    for event in ev_took_turn.read() {
+        let entity = event.actor;
+        if let Some(energy) = energy_by_entity.get_mut(&entity) {
             energy.amount -= ACTION_COST;
-            commands.entity(entity).remove::<Active>();
-            println!("Actor {:?} took turn", entity);
         }
+        commands.entity(entity).remove::<Active>();
     }
 }
 
@@ -72,7 +66,7 @@ impl Plugin for EnergyPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             First,
-            (add_energy, pick_next_actor)
+            (add_energy, pick_next_actors)
                 .chain()
                 .run_if(no_active_actors),
         )

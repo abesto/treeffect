@@ -3,7 +3,7 @@ use bevy::{
     math::{IVec2, URect, UVec2},
 };
 
-use crate::util::{ivec2_ext::*, UVec2Ext};
+use crate::util::{ivec2_ext::*, uvec2_ext::*};
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub enum TileType {

@@ -4,6 +4,8 @@ use bevy::prelude::*;
 
 use crate::components::{intents::movement::MovementIntent, player::Player};
 
+use super::ai::ai_inactive;
+
 const KEY_REPEAT: f64 = 0.050;
 const KEY_REPEAT_DELAY: f64 = 0.400;
 
@@ -73,7 +75,7 @@ pub struct InputPlugin;
 
 impl Plugin for InputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(PreUpdate, handle_input)
+        app.add_systems(PreUpdate, handle_input.run_if(ai_inactive))
             .insert_resource(KeyRepeatManager::new());
     }
 }

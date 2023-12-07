@@ -2,7 +2,7 @@ use bevy::ecs::component::Component;
 use bevy_ascii_terminal::FormattedTile;
 use strum_macros::EnumIter;
 
-#[derive(EnumIter, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(EnumIter, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub enum RenderLayer {
     Items,
     Monsters,
@@ -10,7 +10,7 @@ pub enum RenderLayer {
     Particle,
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Renderable {
     pub formatted_tile: FormattedTile,
     pub render_layer: RenderLayer,

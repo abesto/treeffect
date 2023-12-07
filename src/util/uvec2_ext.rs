@@ -7,7 +7,7 @@ pub trait UVec2Ext {
 
 impl UVec2Ext for UVec2 {
     fn as_index(&self, width: u32) -> usize {
-        (self.x + self.y * width) as usize
+        (self.x + self.y.saturating_mul(width)) as usize
     }
 
     fn offset(&self, by: &IVec2) -> UVec2 {

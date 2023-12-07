@@ -9,7 +9,8 @@ use std::collections::VecDeque;
 
 use crate::plugins::map::resources::{Map, TileType};
 use crate::util::ivec2_ext::*;
-use crate::util::{URectExt, UVec2Ext};
+use crate::util::urect_ext::URectExt;
+use crate::util::uvec2_ext::UVec2Ext;
 
 pub fn apply_room_to_map(room: &URect, map: &mut Map) {
     fill(room, TileType::Floor, map);
@@ -333,7 +334,7 @@ pub fn find_furthest_reachable_tiles(
 
 #[cfg(test)]
 mod tests {
-    use crate::util::urect_with_size;
+    use crate::util::urect_ext::urect_with_size;
 
     use super::*;
 

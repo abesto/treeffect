@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Clone, Copy)]
 pub struct Energy {
     pub amount: u16,
 }

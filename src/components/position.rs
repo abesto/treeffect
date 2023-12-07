@@ -3,7 +3,7 @@ use bevy::{
     math::{IVec2, UVec2},
 };
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Position {
     pub xy: UVec2,
 }
