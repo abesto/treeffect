@@ -4,6 +4,7 @@ use bevy_ascii_terminal::TileFormatter;
 use crate::components::{
     ai::Ai,
     energy::Energy,
+    name::Name,
     position::Position,
     renderable::{RenderLayer, Renderable},
 };
@@ -14,6 +15,7 @@ pub struct GoblinBundle {
     pub position: Position,
     pub energy: Energy,
     pub ai: Ai,
+    pub name: Name,
 }
 
 impl Default for GoblinBundle {
@@ -23,6 +25,7 @@ impl Default for GoblinBundle {
             position: Position::default(),
             energy: Energy::new(2),
             ai: Ai::Monster,
+            name: Name::new("goblin"),
         }
     }
 }

@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::components::{
     ai::Ai,
     energy::Active,
-    intents::{movement::MovementIntent, wait::WaitIntent},
+    intents::{attack::AttackIntent, movement::MovementIntent, wait::WaitIntent},
     player::Player,
     position::Position,
 };
@@ -89,7 +89,11 @@ fn monster(
         let to = step.as_ivec2();
         let direction = to - from;
 
-        entity_commands.insert(MovementIntent(direction));
+        if player_pos.xy.as_ivec2().distance_squared(from) < 4 {
+            entity_commands.insert(AttackIntent(direction));
+        } else {
+            entity_commands.insert(MovementIntent(direction));
+        }
     }
 }
 
