@@ -239,7 +239,7 @@ where
         ev_spawn.send(Spawn::Dog(self.rooms[1].center()));
         for room in self.rooms.iter().skip(1) {
             ev_spawn.send(Spawn::Area {
-                area: *room,
+                area: room.inset(-1),
                 depth: 1, //self.map.depth,
             });
         }
