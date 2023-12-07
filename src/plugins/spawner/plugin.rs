@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 
 use super::{
-    bundles::DogBundle,
     events::SpawnPlayer,
     systems::{
         generic::{spawn, Spawn},

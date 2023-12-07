@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bracket_pathfinding::prelude::a_star_search;
 
 use crate::components::{
     ai::Ai,
@@ -28,14 +27,24 @@ fn dog(
             continue;
         };
 
-        let path = a_star_search(map.xy_idx(&position.xy), map.xy_idx(&player_pos.xy), &*map);
-        let Some(step) = path.steps.get(1) else {
+        print!(
+            "Dog at {:?} is chasing player at {:?}",
+            position.xy, player_pos.xy
+        );
+        let path = map.astar(&position.xy, &player_pos.xy);
+        let Some((steps, _)) = path else {
+            println!("No path found");
+            entity_commands.insert(WaitIntent);
+            continue;
+        };
+        let Some(step) = steps.get(1) else {
+            println!("No steps found");
             entity_commands.insert(WaitIntent);
             continue;
         };
 
         let from = position.xy.as_ivec2();
-        let to = map.idx_pos(*step).as_ivec2();
+        let to = step.as_ivec2();
         let direction = if player_pos.xy.as_ivec2().distance_squared(from) > 4 {
             to - from
         } else {

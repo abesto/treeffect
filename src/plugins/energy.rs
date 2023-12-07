@@ -37,7 +37,6 @@ fn pick_next_actor(
 ) {
     let candidates = query
         .iter()
-        .map(|(entity, energy)| dbg!((entity, energy)))
         .filter(|(_, energy)| energy.amount >= ACTION_COST);
     let Some((next_actor, _)) = candidates.choose(&mut *rng) else {
         return;

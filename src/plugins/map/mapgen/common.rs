@@ -307,6 +307,7 @@ pub fn generate_voronoi_spawn_regions(
     areas
 }
 
+/*
 pub fn find_furthest_reachable_tiles(
     map: &Map,
     dijsktra_map: &bracket_pathfinding::prelude::DijkstraMap,
@@ -321,6 +322,7 @@ pub fn find_furthest_reachable_tiles(
         .take(count)
         .collect()
 }
+*/
 
 #[cfg(test)]
 mod tests {

@@ -2,7 +2,6 @@ use bevy::{
     ecs::system::Resource,
     math::{IVec2, URect, UVec2},
 };
-use bracket_pathfinding::prelude::SmallVec;
 
 use crate::util::{ivec2_ext::*, UVec2Ext};
 
@@ -65,8 +64,30 @@ impl Map {
         URect::from_corners(UVec2::ZERO, self.size - UVec2::ONE)
     }
 
+    // TODO dedup this and is_opaque
     pub fn is_walkable(&self, position: &UVec2) -> bool {
         self.get(position) == Some(TileType::Floor)
+    }
+
+    pub fn astar(&self, from: &UVec2, to: &UVec2) -> Option<(Vec<UVec2>, i32)> {
+        let ito = to.as_ivec2();
+        pathfinding::directed::astar::astar(
+            from,
+            |position| {
+                let mut successors = Vec::with_capacity(8);
+                for direction in [
+                    NORTH, SOUTH, EAST, WEST, NORTH_EAST, NORTH_WEST, SOUTH_EAST, SOUTH_WEST,
+                ] {
+                    let new_position = (position.as_ivec2() + direction).as_uvec2();
+                    if self.is_walkable(&new_position) {
+                        successors.push((new_position, 1));
+                    }
+                }
+                successors
+            },
+            |position| position.as_ivec2().distance_squared(ito),
+            |position| position == to,
+        )
     }
 }
 
@@ -97,35 +118,5 @@ impl std::ops::IndexMut<&UVec2> for Map {
     fn index_mut(&mut self, index: &UVec2) -> &mut Self::Output {
         let idx = self.xy_idx(index);
         &mut self.tiles[idx]
-    }
-}
-
-impl bracket_pathfinding::prelude::BaseMap for Map {
-    fn is_opaque(&self, idx: usize) -> bool {
-        idx < self.tiles.len() && self.tiles[idx as usize] == TileType::Wall
-    }
-
-    fn get_available_exits(&self, idx: usize) -> SmallVec<[(usize, f32); 10]> {
-        let position = self.idx_pos(idx).as_ivec2();
-
-        [
-            NORTH, NORTH_EAST, EAST, SOUTH_EAST, SOUTH, SOUTH_WEST, WEST, NORTH_WEST,
-        ]
-        .iter()
-        .map(|vector| position + *vector)
-        .filter(|candidate| self.is_walkable(&candidate.as_uvec2()))
-        .map(|exit| {
-            (
-                self.xy_idx(&exit.as_uvec2()),
-                (position.distance_squared(exit) as f32).sqrt(),
-            )
-        })
-        .collect()
-    }
-
-    fn get_pathing_distance(&self, idx1: usize, idx2: usize) -> f32 {
-        let p1 = self.idx_pos(idx1).as_ivec2();
-        let p2 = self.idx_pos(idx2).as_ivec2();
-        (p1.distance_squared(p2) as f32).sqrt()
     }
 }
