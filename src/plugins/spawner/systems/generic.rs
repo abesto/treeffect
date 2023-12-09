@@ -7,8 +7,8 @@ use bevy_rand::resource::GlobalEntropy;
 use rand::{seq::IteratorRandom, Rng};
 
 use crate::{
+    bundles::{DogBundle, GoblinBundle, OrcBundle},
     components::{energy::Energy, position::Position},
-    plugins::spawner::bundles::{DogBundle, GoblinBundle, OrcBundle},
     util::{random_table::RandomTable, urect_ext::URectExt},
 };
 

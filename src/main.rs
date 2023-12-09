@@ -4,7 +4,6 @@ use bevy_prng::WyRand;
 use bevy_rand::prelude::*;
 use consts::MAP_SIZE;
 use events::EventsPlugin;
-use plugins::actions::ActionsPlugin;
 use plugins::ai::AiPlugin;
 use plugins::energy::EnergyPlugin;
 use plugins::input::InputPlugin;
@@ -12,6 +11,8 @@ use plugins::map::MapPlugin;
 use plugins::render::RenderPlugin;
 use plugins::spawner::SpawnerPlugin;
 
+mod behaviors;
+mod bundles;
 mod components;
 mod consts;
 mod events;
@@ -64,7 +65,6 @@ fn main() {
             InputPlugin,
             AiPlugin,
             EnergyPlugin,
-            ActionsPlugin,
             RenderPlugin,
         ))
         .run();

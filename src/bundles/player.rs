@@ -1,13 +1,18 @@
 use bevy::{ecs::bundle::Bundle, render::color::Color};
 use bevy_ascii_terminal::TileFormatter;
 
-use crate::components::{
-    energy::Energy,
-    name::Name,
-    player::Player,
-    position::Position,
-    renderable::{RenderLayer, Renderable},
+use crate::{
+    behaviors::{actor::ActorBehavior, Behavior},
+    components::{
+        energy::Energy,
+        name::Name,
+        player::Player,
+        position::Position,
+        renderable::{RenderLayer, Renderable},
+    },
 };
+
+type Behaviors = ActorBehavior;
 
 #[derive(Bundle)]
 pub struct PlayerBundle {
@@ -16,6 +21,7 @@ pub struct PlayerBundle {
     pub position: Position,
     pub energy: Energy,
     pub name: Name,
+    pub behaviors: Behaviors,
 }
 
 impl Default for PlayerBundle {
@@ -26,6 +32,7 @@ impl Default for PlayerBundle {
             position: Position::default(),
             energy: Energy::new(1000),
             name: Name::new("Player"),
+            behaviors: Behaviors::behavior(),
         }
     }
 }

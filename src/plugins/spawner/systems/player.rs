@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
+    bundles::PlayerBundle,
     components::{player::Player, position::Position},
-    plugins::spawner::bundles::PlayerBundle,
 };
 
 #[derive(Event)]

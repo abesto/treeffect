@@ -2,11 +2,9 @@ use std::collections::HashMap;
 
 use bevy::prelude::*;
 
-use crate::components::{
-    ai::Ai,
-    intents::{attack::AttackIntent, movement::MovementIntent},
-    player::Player,
-    position::Position,
+use crate::{
+    components::{ai::Ai, player::Player, position::Position},
+    events::intents::{attack::AttackIntent, movement::MovementIntent},
 };
 
 use super::ai::ai_inactive;
@@ -43,12 +41,13 @@ impl KeyRepeatManager {
 }
 
 fn handle_input(
-    mut commands: Commands,
     q_player: Query<(Entity, &Position), With<Player>>,
     q_monsters: Query<&Position, With<Ai>>, // TODO replace with collision system caching positions
     keys: Res<Input<KeyCode>>,
     time: Res<Time>,
     mut key_repeat_manager: ResMut<KeyRepeatManager>,
+    mut ev_movement: EventWriter<MovementIntent>,
+    mut ev_attack: EventWriter<AttackIntent>,
 ) {
     let Ok((player, player_position)) = q_player.get_single() else {
         return;
@@ -56,21 +55,21 @@ fn handle_input(
     keys.get_just_released()
         .for_each(|key| key_repeat_manager.released(key));
 
-    macro_rules! record {
-        ($intent:expr) => {
-            commands.entity(player).insert($intent);
-        };
-    }
-
     let mut move_or_attack = |direction: IVec2| {
         let new_position = (player_position.xy.as_ivec2() + direction).as_uvec2();
         if q_monsters
             .iter()
             .any(|position| position.xy == new_position)
         {
-            record!(AttackIntent(direction));
+            ev_attack.send(AttackIntent {
+                actor: player,
+                vector: direction,
+            });
         } else {
-            record!(MovementIntent(direction));
+            ev_movement.send(MovementIntent {
+                actor: player,
+                vector: direction,
+            });
         }
         true
     };

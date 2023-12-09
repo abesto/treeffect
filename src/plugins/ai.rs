@@ -1,44 +1,41 @@
 use bevy::prelude::*;
 
-use crate::components::{
-    ai::Ai,
-    energy::Active,
-    intents::{attack::AttackIntent, movement::MovementIntent, wait::WaitIntent},
-    player::Player,
-    position::Position,
+use crate::{
+    components::{ai::Ai, energy::Active, player::Player, position::Position},
+    events::intents::{attack::AttackIntent, movement::MovementIntent, wait::WaitIntent},
 };
 
 use super::map::resources::Map;
 
 macro_rules! skip {
-    ($ec:ident) => {
-        $ec.insert(WaitIntent);
+    ($ev:ident, $entity:ident) => {
+        $ev.send(WaitIntent { actor: $entity });
         continue;
     };
 }
 
 fn dog(
-    mut commands: Commands,
     q_ai: Query<(Entity, &Position, &Ai), With<Active>>,
     q_player: Query<&Position, With<Player>>,
+    mut ev_movement: EventWriter<MovementIntent>,
+    mut ev_wait: EventWriter<WaitIntent>,
     map: Res<Map>,
 ) {
     for (entity, position, ai) in q_ai.iter() {
         if ai != &Ai::Dog {
             continue;
         }
-        let mut entity_commands = commands.entity(entity);
 
         let Ok(player_pos) = q_player.get_single() else {
-            skip!(entity_commands);
+            skip!(ev_wait, entity);
         };
 
         let path = map.astar(&position.xy, &player_pos.xy);
         let Some((steps, _)) = path else {
-            skip!(entity_commands);
+            skip!(ev_wait, entity);
         };
         let Some(step) = steps.get(1) else {
-            skip!(entity_commands);
+            skip!(ev_wait, entity);
         };
 
         let from = position.xy.as_ivec2();
@@ -48,24 +45,28 @@ fn dog(
         } else {
             from - to
         };
-        entity_commands.insert(MovementIntent(direction));
+        ev_movement.send(MovementIntent {
+            actor: entity,
+            vector: direction,
+        });
     }
 }
 
 fn monster(
-    mut commands: Commands,
     q_ai: Query<(Entity, &Position, &Ai), With<Active>>,
     q_player: Query<&Position, With<Player>>,
+    mut ev_movement: EventWriter<MovementIntent>,
+    mut ev_attack: EventWriter<AttackIntent>,
+    mut ev_wait: EventWriter<WaitIntent>,
     map: Res<Map>,
 ) {
     for (entity, position, ai) in q_ai.iter() {
         if ai != &Ai::Monster {
             continue;
         }
-        let mut entity_commands = commands.entity(entity);
 
         let Ok(player_pos) = q_player.get_single() else {
-            skip!(entity_commands);
+            skip!(ev_wait, entity);
         };
 
         if player_pos
@@ -74,15 +75,15 @@ fn monster(
             .distance_squared(position.xy.as_ivec2())
             > 100
         {
-            skip!(entity_commands);
+            skip!(ev_wait, entity);
         }
 
         let path = map.astar(&position.xy, &player_pos.xy);
         let Some((steps, _)) = path else {
-            skip!(entity_commands);
+            skip!(ev_wait, entity);
         };
         let Some(step) = steps.get(1) else {
-            skip!(entity_commands);
+            skip!(ev_wait, entity);
         };
 
         let from = position.xy.as_ivec2();
@@ -90,9 +91,15 @@ fn monster(
         let direction = to - from;
 
         if player_pos.xy.as_ivec2().distance_squared(from) < 4 {
-            entity_commands.insert(AttackIntent(direction));
+            ev_attack.send(AttackIntent {
+                actor: entity,
+                vector: direction,
+            });
         } else {
-            entity_commands.insert(MovementIntent(direction));
+            ev_movement.send(MovementIntent {
+                actor: entity,
+                vector: direction,
+            });
         }
     }
 }

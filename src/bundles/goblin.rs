@@ -1,21 +1,27 @@
 use bevy::{ecs::bundle::Bundle, render::color::Color};
 use bevy_ascii_terminal::TileFormatter;
 
-use crate::components::{
-    ai::Ai,
-    energy::Energy,
-    name::Name,
-    position::Position,
-    renderable::{RenderLayer, Renderable},
+use crate::{
+    behaviors::{actor::ActorBehavior, Behavior},
+    components::{
+        ai::Ai,
+        energy::Energy,
+        name::Name,
+        position::Position,
+        renderable::{RenderLayer, Renderable},
+    },
 };
 
-#[derive(Bundle, Clone)]
+type Behaviors = ActorBehavior;
+
+#[derive(Bundle)]
 pub struct GoblinBundle {
     pub renderable: Renderable,
     pub position: Position,
     pub energy: Energy,
     pub ai: Ai,
     pub name: Name,
+    pub behaviors: Behaviors,
 }
 
 impl Default for GoblinBundle {
@@ -26,6 +32,7 @@ impl Default for GoblinBundle {
             energy: Energy::new(2),
             ai: Ai::Monster,
             name: Name::new("goblin"),
+            behaviors: Behaviors::behavior(),
         }
     }
 }
